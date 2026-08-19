@@ -2,20 +2,16 @@ const TelegramBot = require('node-telegram-bot-api').default || require('node-te
 const axios = require('axios');
 const fs = require('fs');
 
-// 1. Telegram Bot Token
 const TELEGRAM_TOKEN = '8417783415:AAF5d1xXD_2rrA3Knec_OSwtnXD5iEgl9GU';
 
-// 2. Sightengine API ma'lumotlari
 const API_USER = '1436050434';
 const API_SECRET = 'NRmfxmKyEyJoQrJsLpesncpboDTquxxf';
 
-// 3. Admin ID va Guruh (Tarix) ID-si
 const ADMIN_ID = 8419615333; 
 const LOG_CHANNEL_ID = -1004312367012; 
 
 const bot = new TelegramBot(TELEGRAM_TOKEN, { polling: true });
 
-// Lug'at
 const messages = {
   uz: {
     analyzing: "🔍 Rasm tahlil qilinmoqda, kuting...",
@@ -33,10 +29,8 @@ const messages = {
   }
 };
 
-// Foydalanuvchi tillarini saqlash uchun fayl va xotira
 const USER_LANGS_FILE = './user_languages.json';
 
-// Foydalanuvchilar tilini o'qish
 function getUserLanguages() {
   if (!fs.existsSync(USER_LANGS_FILE)) {
     fs.writeFileSync(USER_LANGS_FILE, JSON.stringify({}));
@@ -49,20 +43,17 @@ function getUserLanguages() {
   }
 }
 
-// Foydalanuvchi tilini saqlash
 function setUserLanguage(userId, lang) {
   const langs = getUserLanguages();
   langs[userId] = lang;
   fs.writeFileSync(USER_LANGS_FILE, JSON.stringify(langs, null, 2));
 }
 
-// Foydalanuvchi tilini olish (standart: 'uz')
 function getUserLanguage(userId) {
   const langs = getUserLanguages();
   return langs[userId] || 'uz';
 }
 
-// Foydalanuvchilarni fayldan o'qish  
 const USERS_FILE = './users.json';
 function getUsers() {
   if (!fs.existsSync(USERS_FILE)) {
@@ -76,7 +67,6 @@ function getUsers() {
   }
 }
 
-// Yangi foydalanuvchini saqlash
 function saveUser(user) {
   if (!user) return;
   const users = getUsers();
@@ -93,7 +83,6 @@ function saveUser(user) {
   }
 }
 
-// Admin/Guruhga log yuborish funksiyasi
 async function logToAdmin(msg, fileType, aiScore, resultMessage) {
   try {
     const targetId = (LOG_CHANNEL_ID && LOG_CHANNEL_ID !== -1002345678910) ? LOG_CHANNEL_ID : ADMIN_ID;
@@ -112,7 +101,6 @@ async function logToAdmin(msg, fileType, aiScore, resultMessage) {
   }
 }
 
-// /start buyrug'i
 bot.onText(/\/start/, (msg) => {
   saveUser(msg.from);
   const chatId = msg.chat.id;
@@ -131,7 +119,6 @@ bot.onText(/\/start/, (msg) => {
   bot.sendMessage(chatId, "Iltimos, tilni tanlang / Please select a language:", options);
 });
 
-// Til tugmalari bosilganda ishlaydigan qism
 bot.on('callback_query', async (query) => {
   const chatId = query.message.chat.id;
   const userId = query.from.id;
@@ -162,7 +149,6 @@ bot.on('callback_query', async (query) => {
   }
 });
 
-// Admin uchun: Foydalanuvchilar ro'yxati (/users)
 bot.onText(/\/users/, (msg) => {
   saveUser(msg.from);
   const chatId = msg.chat.id;
@@ -188,7 +174,6 @@ bot.onText(/\/users/, (msg) => {
   bot.sendMessage(chatId, text, { parse_mode: 'HTML' }).catch(console.error);
 });
 
-// Oddiy xabarlar kelganda Chat ID-ni konsolga chiqarish
 bot.on('message', (msg) => {
   saveUser(msg.from);
   const chatId = msg.chat.id;
@@ -202,17 +187,13 @@ bot.on('message', (msg) => {
   }
 });
 
-// RASM tahlili va loglash
-// RASM tahlili va loglash
 bot.on('photo', async (msg) => {
   saveUser(msg.from);
   const chatId = msg.chat.id;
 
-  // Foydalanuvchi tilini aniqlash ('uz' yoki 'en')
   const lang = getUserLanguage(msg.from.id);
   const text = messages[lang];
 
-  // Kutish xabari (tanlangan tilda)
   bot.sendMessage(chatId, text.analyzing).catch(console.error);
 
   try {
@@ -230,7 +211,6 @@ bot.on('photo', async (msg) => {
 
     const aiScore = Math.round(response.data.type.ai_generated * 100);
 
-    // Xulosa va matnni tanlangan tilga moslash
     const summary = aiScore > 60 ? text.summaryAI : text.summaryReal;
     const resultMessage = `📊 **${text.title}**\n\n🤖 ${text.aiProb} **${aiScore}%**\n\n${summary}`;
 
@@ -247,7 +227,6 @@ bot.on('photo', async (msg) => {
   }
 });
 
-// VIDEO tahlili va loglash
 bot.on('video', async (msg) => {
   saveUser(msg.from);
   const chatId = msg.chat.id;
