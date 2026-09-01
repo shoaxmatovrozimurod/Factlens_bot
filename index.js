@@ -4,6 +4,7 @@ const TelegramBot = require('node-telegram-bot-api').default || require('node-te
 const axios = require('axios');
 const fs = require('fs');
 const i18next = require('i18next');
+const { saveUser, setUserLanguage, getUserLanguage, getUsers } = require('./db');
 
 const TELEGRAM_TOKEN = process.env.TELEGRAM_TOKEN;
 const API_USER = process.env.API_USER;
@@ -24,60 +25,6 @@ i18next.init({
     en: { translation: en }
   }
 });
-
-const USER_LANGS_FILE = './user_languages.json';
-
-function getUserLanguages() {
-  if (!fs.existsSync(USER_LANGS_FILE)) {
-    fs.writeFileSync(USER_LANGS_FILE, JSON.stringify({}));
-  }
-  try {
-    const data = fs.readFileSync(USER_LANGS_FILE);
-    return JSON.parse(data);
-  } catch (e) {
-    return {};
-  }
-}
-
-function setUserLanguage(userId, lang) {
-  const langs = getUserLanguages();
-  langs[userId] = lang;
-  fs.writeFileSync(USER_LANGS_FILE, JSON.stringify(langs, null, 2));
-}
-
-function getUserLanguage(userId) {
-  const langs = getUserLanguages();
-  return langs[userId] || 'uz';
-}
-
-const USERS_FILE = './users.json';
-function getUsers() {
-  if (!fs.existsSync(USERS_FILE)) {
-    fs.writeFileSync(USERS_FILE, JSON.stringify([]));
-  }
-  try {
-    const data = fs.readFileSync(USERS_FILE);
-    return JSON.parse(data);
-  } catch (e) {
-    return [];
-  }
-}
-
-function saveUser(user) {
-  if (!user) return;
-  const users = getUsers();
-  const exists = users.find(u => u.id === user.id);
-  if (!exists) {
-    users.push({
-      id: user.id,
-      first_name: user.first_name || '',
-      last_name: user.last_name || '',
-      username: user.username ? `@${user.username}` : 'Mavjud emas',
-      date: new Date().toISOString().split('T')[0]
-    });
-    fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 2));
-  }
-}
 
 async function logToAdmin(msg, fileType, aiScore, resultMessage) {
   try {
@@ -113,6 +60,25 @@ bot.onText(/\/start/, (msg) => {
   };
 
   bot.sendMessage(chatId, "Iltimos, tilni tanlang / Please select a language:", options);
+});
+
+// 🌐 Istalgan vaqtda tilni almashtirish buyrug'i
+bot.onText(/\/language/, (msg) => {
+  saveUser(msg.from);
+  const chatId = msg.chat.id;
+
+  const options = {
+    reply_markup: {
+      inline_keyboard: [
+        [
+          { text: "🇺🇿 O'zbekcha", callback_data: "lang_uz" },
+          { text: "🇬🇧 English", callback_data: "lang_en" }
+        ]
+      ]
+    }
+  };
+
+  bot.sendMessage(chatId, "Tilni almashtirish / Change language:", options);
 });
 
 bot.on('callback_query', async (query) => {
@@ -173,8 +139,6 @@ bot.onText(/\/users/, (msg) => {
 bot.on('message', (msg) => {
   saveUser(msg.from);
   const chatId = msg.chat.id;
-
-  console.log("➡️ Kelgan xabar Chat ID-si:", chatId);
 
   if (!msg.photo && !msg.video && msg.text && !msg.text.startsWith('/')) {
     if (msg.chat.type === 'private') {
