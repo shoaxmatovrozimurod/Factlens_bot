@@ -1,18 +1,18 @@
+require('dotenv').config();
+
 const TelegramBot = require('node-telegram-bot-api').default || require('node-telegram-bot-api');
 const axios = require('axios');
 const fs = require('fs');
+const i18next = require('i18next');
 
-const TELEGRAM_TOKEN = '8417783415:AAF5d1xXD_2rrA3Knec_OSwtnXD5iEgl9GU';
-
-const API_USER = '1436050434';
-const API_SECRET = 'NRmfxmKyEyJoQrJsLpesncpboDTquxxf';
-
-const ADMIN_ID = 8419615333; 
-const LOG_CHANNEL_ID = -1004312367012; 
+const TELEGRAM_TOKEN = process.env.TELEGRAM_TOKEN;
+const API_USER = process.env.API_USER;
+const API_SECRET = process.env.API_SECRET;
+const ADMIN_ID = Number(process.env.ADMIN_ID);
+const LOG_CHANNEL_ID = Number(process.env.LOG_CHANNEL_ID);
 
 const bot = new TelegramBot(TELEGRAM_TOKEN, { polling: true });
 
-const i18next = require('i18next');
 const uz = require('./locales/uz.json');
 const en = require('./locales/en.json');
 
@@ -186,11 +186,9 @@ bot.on('message', (msg) => {
 bot.on('photo', async (msg) => {
   saveUser(msg.from);
   const chatId = msg.chat.id;
-
   const lang = getUserLanguage(msg.from.id);
-  const text = messages[lang];
 
-  bot.sendMessage(chatId, text.analyzing).catch(console.error);
+  bot.sendMessage(chatId, i18next.t('analyzing', { lng: lang })).catch(console.error);
 
   try {
     const fileId = msg.photo[msg.photo.length - 1].file_id;
@@ -207,11 +205,15 @@ bot.on('photo', async (msg) => {
 
     const aiScore = Math.round(response.data.type.ai_generated * 100);
 
-    const summary = aiScore > 60 ? text.summaryAI : text.summaryReal;
-    const resultMessage = `📊 **${text.title}**\n\n🤖 ${text.aiProb} **${aiScore}%**\n\n${summary}`;
+    const title = i18next.t('title', { lng: lang });
+    const aiProb = i18next.t('aiProb', { lng: lang });
+    const summary = aiScore > 60 
+      ? i18next.t('summaryAI', { lng: lang }) 
+      : i18next.t('summaryReal', { lng: lang });
+
+    const resultMessage = `📊 **${title}**\n\n🤖 ${aiProb} **${aiScore}%**\n\n${summary}`;
 
     await bot.sendMessage(chatId, resultMessage, { parse_mode: 'Markdown' }).catch(console.error);
-
     logToAdmin(msg, 'Rasm', aiScore, resultMessage);
 
   } catch (error) {
@@ -226,9 +228,7 @@ bot.on('photo', async (msg) => {
 bot.on('video', async (msg) => {
   saveUser(msg.from);
   const chatId = msg.chat.id;
-
   const lang = getUserLanguage(msg.from.id);
-  const text = messages[lang];
 
   if (msg.video.file_size > 20 * 1024 * 1024) {
     const sizeText = lang === 'en' 
@@ -257,11 +257,15 @@ bot.on('video', async (msg) => {
 
     const aiScore = Math.round(response.data.type.ai_generated * 100);
 
-    const summary = aiScore > 60 ? text.summaryAI : text.summaryReal;
-    const resultMessage = `📊 **${text.title}**\n\n🤖 ${text.aiProb} **${aiScore}%**\n\n${summary}`;
+    const title = i18next.t('title', { lng: lang });
+    const aiProb = i18next.t('aiProb', { lng: lang });
+    const summary = aiScore > 60 
+      ? i18next.t('summaryAI', { lng: lang }) 
+      : i18next.t('summaryReal', { lng: lang });
+
+    const resultMessage = `📊 **${title}**\n\n🤖 ${aiProb} **${aiScore}%**\n\n${summary}`;
 
     await bot.sendMessage(chatId, resultMessage, { parse_mode: 'Markdown' }).catch(console.error);
-
     logToAdmin(msg, 'Video', aiScore, resultMessage);
 
   } catch (error) {
