@@ -1,4 +1,5 @@
 {
+  "resultMessage": "📊 **{{title}}**\n\n🤖 {{aiProb}} **{{aiScore}}%**\n\n{{summary}}",
   "analyzing": "🔍 Rasm tahlil qilinmoqda, kuting...",
   "title": "FactLens Rasm Tahlil Natijasi:",
   "aiProb": "AI (Sun'iy intellekt) ehtimoli:",

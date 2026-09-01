@@ -2,7 +2,6 @@ require('dotenv').config();
 
 const TelegramBot = require('node-telegram-bot-api').default || require('node-telegram-bot-api');
 const axios = require('axios');
-const fs = require('fs');
 const i18next = require('i18next');
 const { saveUser, setUserLanguage, getUserLanguage, getUsers } = require('./db');
 
@@ -62,7 +61,6 @@ bot.onText(/\/start/, (msg) => {
   bot.sendMessage(chatId, "Iltimos, tilni tanlang / Please select a language:", options);
 });
 
-// 🌐 Istalgan vaqtda tilni almashtirish buyrug'i
 bot.onText(/\/language/, (msg) => {
   saveUser(msg.from);
   const chatId = msg.chat.id;
@@ -169,13 +167,15 @@ bot.on('photo', async (msg) => {
 
     const aiScore = Math.round(response.data.type.ai_generated * 100);
 
-    const title = i18next.t('title', { lng: lang });
-    const aiProb = i18next.t('aiProb', { lng: lang });
-    const summary = aiScore > 60 
-      ? i18next.t('summaryAI', { lng: lang }) 
-      : i18next.t('summaryReal', { lng: lang });
-
-    const resultMessage = `📊 **${title}**\n\n🤖 ${aiProb} **${aiScore}%**\n\n${summary}`;
+    const resultMessage = i18next.t('resultMessage', {
+      lng: lang,
+      title: i18next.t('title', { lng: lang }),
+      aiProb: i18next.t('aiProb', { lng: lang }),
+      aiScore: aiScore,
+      summary: aiScore > 60 
+        ? i18next.t('summaryAI', { lng: lang }) 
+        : i18next.t('summaryReal', { lng: lang })
+    });
 
     await bot.sendMessage(chatId, resultMessage, { parse_mode: 'Markdown' }).catch(console.error);
     logToAdmin(msg, 'Rasm', aiScore, resultMessage);
@@ -221,13 +221,15 @@ bot.on('video', async (msg) => {
 
     const aiScore = Math.round(response.data.type.ai_generated * 100);
 
-    const title = i18next.t('title', { lng: lang });
-    const aiProb = i18next.t('aiProb', { lng: lang });
-    const summary = aiScore > 60 
-      ? i18next.t('summaryAI', { lng: lang }) 
-      : i18next.t('summaryReal', { lng: lang });
-
-    const resultMessage = `📊 **${title}**\n\n🤖 ${aiProb} **${aiScore}%**\n\n${summary}`;
+    const resultMessage = i18next.t('resultMessage', {
+      lng: lang,
+      title: i18next.t('title', { lng: lang }),
+      aiProb: i18next.t('aiProb', { lng: lang }),
+      aiScore: aiScore,
+      summary: aiScore > 60 
+        ? i18next.t('summaryAI', { lng: lang }) 
+        : i18next.t('summaryReal', { lng: lang })
+    });
 
     await bot.sendMessage(chatId, resultMessage, { parse_mode: 'Markdown' }).catch(console.error);
     logToAdmin(msg, 'Video', aiScore, resultMessage);
