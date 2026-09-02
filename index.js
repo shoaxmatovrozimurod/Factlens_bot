@@ -16,9 +16,13 @@ const bot = new TelegramBot(TELEGRAM_TOKEN, { polling: true });
 const uz = require('./locales/uz.json');
 const en = require('./locales/en.json');
 
+// 1. i18next init qismida escapeValue: false qo'shildi
 i18next.init({
   lng: 'uz',
   fallbackLng: 'uz',
+  interpolation: {
+    escapeValue: false // &#39; belgilarini o'z holicha qoldiradi
+  },
   resources: {
     uz: { translation: uz },
     en: { translation: en }
@@ -167,7 +171,8 @@ bot.on('photo', async (msg) => {
 
     const aiScore = Math.round(response.data.type.ai_generated * 100);
 
-    const resultMessage = i18next.t('resultMessage', {
+    // 2. HTML entitilarni almashtirish va parse_mode to'g'rilandi
+    let resultMessage = i18next.t('resultMessage', {
       lng: lang,
       title: i18next.t('title', { lng: lang }),
       aiProb: i18next.t('aiProb', { lng: lang }),
@@ -176,6 +181,8 @@ bot.on('photo', async (msg) => {
         ? i18next.t('summaryAI', { lng: lang }) 
         : i18next.t('summaryReal', { lng: lang })
     });
+
+    resultMessage = resultMessage.replaceAll('&#39;', "'");
 
     await bot.sendMessage(chatId, resultMessage, { parse_mode: 'Markdown' }).catch(console.error);
     logToAdmin(msg, 'Rasm', aiScore, resultMessage);
@@ -221,7 +228,7 @@ bot.on('video', async (msg) => {
 
     const aiScore = Math.round(response.data.type.ai_generated * 100);
 
-    const resultMessage = i18next.t('resultMessage', {
+    let resultMessage = i18next.t('resultMessage', {
       lng: lang,
       title: i18next.t('title', { lng: lang }),
       aiProb: i18next.t('aiProb', { lng: lang }),
@@ -230,6 +237,8 @@ bot.on('video', async (msg) => {
         ? i18next.t('summaryAI', { lng: lang }) 
         : i18next.t('summaryReal', { lng: lang })
     });
+
+    resultMessage = resultMessage.replaceAll('&#39;', "'");
 
     await bot.sendMessage(chatId, resultMessage, { parse_mode: 'Markdown' }).catch(console.error);
     logToAdmin(msg, 'Video', aiScore, resultMessage);
