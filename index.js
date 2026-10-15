@@ -16,12 +16,11 @@ const bot = new TelegramBot(TELEGRAM_TOKEN, { polling: true });
 const uz = require('./locales/uz.json');
 const en = require('./locales/en.json');
 
-// 1. i18next init qismida escapeValue: false qo'shildi
 i18next.init({
   lng: 'uz',
   fallbackLng: 'uz',
   interpolation: {
-    escapeValue: false // &#39; belgilarini o'z holicha qoldiradi
+    escapeValue: false
   },
   resources: {
     uz: { translation: uz },
@@ -171,7 +170,6 @@ bot.on('photo', async (msg) => {
 
     const aiScore = Math.round(response.data.type.ai_generated * 100);
 
-    // 2. HTML entitilarni almashtirish va parse_mode to'g'rilandi
     let resultMessage = i18next.t('resultMessage', {
       lng: lang,
       title: i18next.t('title', { lng: lang }),

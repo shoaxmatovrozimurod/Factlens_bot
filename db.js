@@ -1,7 +1,6 @@
 const Database = require('better-sqlite3');
 const db = new Database('database.db');
 
-// Jadvallarni yaratish
 db.exec(`
   CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY,
@@ -13,7 +12,6 @@ db.exec(`
   )
 `);
 
-// Foydalanuvchini saqlash yoki yangilash
 function saveUser(user) {
   if (!user) return;
   const stmt = db.prepare(`
@@ -33,20 +31,17 @@ function saveUser(user) {
   );
 }
 
-// Tilni saqlash
 function setUserLanguage(userId, lang) {
   const stmt = db.prepare(`UPDATE users SET lang = ? WHERE id = ?`);
   stmt.run(lang, userId);
 }
 
-// Tilni olish
 function getUserLanguage(userId) {
   const stmt = db.prepare(`SELECT lang FROM users WHERE id = ?`);
   const row = stmt.get(userId);
   return row ? row.lang : 'uz';
 }
 
-// Barcha foydalanuvchilarni olish
 function getUsers() {
   const stmt = db.prepare(`SELECT * FROM users`);
   return stmt.all();
