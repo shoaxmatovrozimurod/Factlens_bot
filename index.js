@@ -11,16 +11,12 @@ const {
   getUsers
 } = require('./db');
 
-// O'zgaruvchilar
 const TELEGRAM_TOKEN = process.env.TELEGRAM_TOKEN;
 const API_USER = process.env.API_USER;
 const API_SECRET = process.env.API_SECRET;
 const ADMIN_ID = Number(process.env.ADMIN_ID);
 const LOG_CHANNEL_ID = Number(process.env.LOG_CHANNEL_ID);
 
-// -------------------------------------------------------------
-// Render Web Service uchun Express server sozlamasi (Port binding)
-// -------------------------------------------------------------
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -31,14 +27,11 @@ app.get('/', (req, res) => {
 app.listen(PORT, () => {
   console.log(`Server portda ishlamoqda: ${PORT}`);
 });
-// -------------------------------------------------------------
 
-// Telegram Botni ishga tushirish
 const bot = new TelegramBot(TELEGRAM_TOKEN, {
   polling: true
 });
 
-// Tillar va i18next sozlamalari
 const uz = require('./locales/uz.json');
 const en = require('./locales/en.json');
 
@@ -58,7 +51,6 @@ i18next.init({
   }
 });
 
-// Admin va kanalga log yuborish funksiyasi
 async function logToAdmin(msg, fileType, aiScore, resultMessage) {
   try {
     const targetId = (LOG_CHANNEL_ID && LOG_CHANNEL_ID !== -1002345678910) ? LOG_CHANNEL_ID : ADMIN_ID;
@@ -83,7 +75,6 @@ async function logToAdmin(msg, fileType, aiScore, resultMessage) {
   }
 }
 
-// /start buyrug'i
 bot.onText(/\/start/, (msg) => {
   saveUser(msg.from);
   const chatId = msg.chat.id;
